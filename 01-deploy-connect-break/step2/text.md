@@ -1,41 +1,31 @@
-## Step 2 - Give them a Service and call it
+## Step 2 - Create a namespace
 
-The Pods exist, but each has its own short-lived address. Create a Service so clients have one stable name:
-
-```plain
-cat > service.yaml <<'EOF'
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-service
-  namespace: learning
-spec:
-  type: ClusterIP
-  selector:
-    app: web-app
-  ports:
-    - port: 80
-      targetPort: 80
-EOF
-kubectl apply -f service.yaml
-```{{exec}}
-
-What this says:
-- `ClusterIP` means the Service is reachable only from inside the cluster.
-- `selector: app: web-app` means "forward to every Pod that carries the label `app=web-app`".
-- `port: 80` is the port clients call on the Service; `targetPort: 80` is the port Nginx listens on inside the Pod.
-
-Start a small test client Pod that just sleeps, so you can run commands from inside the cluster:
+Everything running so far belongs to Kubernetes itself. You should never mix your own application in with those system parts, so you create your own area first.
 
 ```plain
-kubectl run client -n learning --image=curlimages/curl --restart=Never --command -- sleep 3600
-kubectl wait -n learning --for=condition=Ready pod/client --timeout=90s
+kubectl create namespace learning
 ```{{exec}}
 
-Call the Service by name. Inside the cluster, **CoreDNS** (the cluster's internal name lookup) turns `web-service` into the Service's address:
+**What it does.** It creates a namespace called `learning`. Think of it as making a new empty folder. Everything you build in this lab will go inside it, which also means you can wipe it all with one command at the end.
+
+**What you should see:**
+
+```
+namespace/learning created
+```
+
+**How to read it.** The format `type/name created` is how `kubectl` confirms most actions. It says the object of type `namespace` called `learning` now exists.
+
+### Prove it exists
 
 ```plain
-kubectl exec -n learning client -- curl -sI http://web-service
+kubectl get namespaces
 ```{{exec}}
 
-You should see `HTTP/1.1 200 OK`. Click **Check**.
+You should see `learning` in the list, with `STATUS Active`, alongside `default`, `kube-system`, `kube-public` and `kube-node-lease`.
+
+### Why `-n learning` appears in every later command
+
+From now on, almost every command ends with `-n learning`. The `-n` is short for namespace. It tells `kubectl` which folder to look in. If you forget it, `kubectl` looks in `default` and says something like `No resources found`, or `Error from server (NotFound)`. When a command seems to find nothing, a missing `-n learning` is the first thing to check.
+
+Click **Check** when the namespace exists.

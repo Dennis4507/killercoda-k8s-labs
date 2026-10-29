@@ -1,12 +1,29 @@
-# Done
+# Done - what you learned
 
-You walked the full chain: Deployment, ReplicaSet, Pods, Service, DNS, HTTP, failure, diagnosis, recovery.
+You built and then repaired a small application, and along the way you saw how the pieces connect:
 
-The debugging order you used is the one to keep for any "the Service doesn't answer" problem:
+```
+Deployment  ->  ReplicaSet  ->  Pods (carry the label app=web-app)
+                                   ^
+Service (selector app=web-app) ----+   finds Pods by label, lists them as endpoints
+   ^
+client asks DNS for "web-service", gets the Service address, kube-proxy forwards to an endpoint
+```
 
-1. Does the name resolve? (DNS)
-2. Does the Service have endpoints? (selector matches Pod labels)
-3. Are the Pods Ready?
-4. Only then look at ports, network policies, and the application itself.
+## The debugging method to keep
 
-An empty endpoint list is the fastest single clue. If you remember one thing: **healthy Pods plus an unreachable Service usually means a label mismatch.**
+When a Service does not answer, walk the path the request takes and ask one question at each point:
+
+1. **Does the name resolve?** Read the verbose `curl` output.
+2. **Does the Service have endpoints?** Run `kubectl describe service` and read `Selector` and `Endpoints`.
+3. **Do the Pods carry the label the Service wants?** Run `kubectl get pods --show-labels`, or `kubectl get pods -l <selector>`.
+4. **Are the Pods healthy?** Check the `READY` and `STATUS` columns.
+5. Only then look at ports (`targetPort`), network rules, and the application itself.
+
+## The one sentence to remember
+
+If the Pods are healthy but the Service does not answer, the first suspect is **a label that does not match the selector**, and the fastest clue is an empty `Endpoints` list.
+
+## Try it yourself
+
+Without looking back, try breaking a different part and fixing it: change `targetPort` to `8080` and see how the failure differs. (Hint: the endpoints will still be full this time, so the evidence points somewhere else. What does that tell you?)
