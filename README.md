@@ -5,6 +5,7 @@ Hands-on Kubernetes failure labs for [Killercoda](https://killercoda.com). Each 
 | Lab | Topic |
 |---|---|
 | [01-deploy-connect-break](01-deploy-connect-break) | Deployment, Service, label-selector mismatch |
+| [02-pods-wont-start](02-pods-wont-start) | `ImagePullBackOff` and `CrashLoopBackOff`: status, Events, logs, exit codes |
 
 ## Adding a lab
 

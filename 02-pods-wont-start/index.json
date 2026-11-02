@@ -1,0 +1,63 @@
+{
+  "title": "Lab 02 - Pods that won't start",
+  "description": "Two classic Pod failures, ImagePullBackOff and CrashLoopBackOff. Learn to read the status, read the clues, find the cause and fix it. Small steps, plain English.",
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "steps": [
+      {
+        "title": "How a Pod starts, and what its status words mean",
+        "text": "step1/text.md",
+        "verify": "step1/verify.sh"
+      },
+      {
+        "title": "Failure A: hire an employee with a wrong address",
+        "text": "step2/text.md",
+        "verify": "step2/verify.sh"
+      },
+      {
+        "title": "Detective A1: read the status",
+        "text": "step3/text.md"
+      },
+      {
+        "title": "Detective A2: read the Events",
+        "text": "step4/text.md"
+      },
+      {
+        "title": "Fix A and prove it",
+        "text": "step5/text.md",
+        "verify": "step5/verify.sh"
+      },
+      {
+        "title": "Failure B: write the plan for an app that needs a setting",
+        "text": "step6/text.md",
+        "verify": "step6/verify.sh"
+      },
+      {
+        "title": "Start it and watch it crash",
+        "text": "step7/text.md",
+        "verify": "step7/verify.sh"
+      },
+      {
+        "title": "Detective B1: read the logs",
+        "text": "step8/text.md"
+      },
+      {
+        "title": "Detective B2: read the exit code",
+        "text": "step9/text.md"
+      },
+      {
+        "title": "Fix B and prove it",
+        "text": "step10/text.md",
+        "verify": "step10/verify.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    }
+  },
+  "backend": {
+    "imageid": "kubernetes-kubeadm-2nodes"
+  }
+}
