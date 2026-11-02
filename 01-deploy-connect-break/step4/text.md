@@ -1,93 +1,69 @@
-## Step 4 - Give the Pods one stable address
+## Step 4 of 16 - Start the Pods and read what happened
 
-### The problem a Service solves
+> **Where we are:** Part 1, Build.
+> **What exists so far:** the `learning` folder, and a plan file `deployment.yaml` that Kubernetes has not seen.
+> **What we do now:** send the plan to Kubernetes, then look at the three Pods it creates and the badge each one wears.
 
-Your three Pods each have their own address, but Pods are disposable. If one dies, its replacement gets a **new** address. A program that wanted to talk to your web server would have to keep chasing those changing addresses. A **Service** fixes this. It has one name and one address that never change, and it forwards each request to whichever Pods are currently healthy.
-
-### Read the YAML first
-
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-service
-  namespace: learning
-spec:
-  type: ClusterIP
-  selector:
-    app: web-app
-  ports:
-    - port: 80
-      targetPort: 80
-```
-
-**Line by line:**
-
-- `apiVersion: v1` and `kind: Service`: this is a Service, which belongs to the core group of Kubernetes objects (hence just `v1`).
-- `name: web-service` is the name other programs will use to reach it. Remember it, because you will call it by exactly this name.
-- `type: ClusterIP` means the Service gets an address that works **only inside the cluster**. Other types, such as NodePort and LoadBalancer, open it to the outside world. ClusterIP is the default and the safest.
-- `selector: app: web-app` is the key line. It says "my backends are every Pod that carries the label `app=web-app`". This is the same label you stuck on the Pods in the Deployment. **This is the link between the Service and the Pods**, and it is made only by matching labels, not by names.
-- `port: 80` is the port **the Service listens on**. Clients call `web-service` on port 80.
-- `targetPort: 80` is the port **on the Pod** that traffic is forwarded to, where Nginx is listening. They happen to match here, but they can differ, for example a Service on 80 forwarding to an app on 8080. A wrong `targetPort` is another very common real-world fault.
-
-### Create it
+### Send the plan
 
 ```plain
-cat > service.yaml <<'EOF'
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-service
-  namespace: learning
-spec:
-  type: ClusterIP
-  selector:
-    app: web-app
-  ports:
-    - port: 80
-      targetPort: 80
-EOF
-kubectl apply -f service.yaml
+kubectl apply -f deployment.yaml
 ```{{exec}}
+
+**What this does.** `apply` means "make the cluster match this description". `-f deployment.yaml` means "read the description from this file".
 
 **What you should see:**
 
 ```
-service/web-service created
+deployment.apps/web-app created
 ```
 
-### Look at the Service
+### Look at the Pods
 
 ```plain
-kubectl get service -n learning
+kubectl get pods -n learning -o wide
 ```{{exec}}
 
+**What this does.** It lists Pods in your `learning` folder. `-o wide` means "show extra columns", including each Pod's address and which machine it runs on.
+
+**What you should see** (wait ten seconds and run it again if you see `ContainerCreating`; that means it is still downloading the program):
+
 ```
-NAME          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
-web-service   ClusterIP   10.96.x.x      <none>        80/TCP    10s
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE
+web-app-7d9c6b5f4d-abcde   1/1     Running   0          30s   192.168.1.4   node01
+web-app-7d9c6b5f4d-fghij   1/1     Running   0          30s   192.168.1.5   node01
+web-app-7d9c6b5f4d-klmno   1/1     Running   0          30s   192.168.0.6   controlplane
 ```
 
-**How to read it.** `CLUSTER-IP` is the Service's permanent internal address (yours will differ). `EXTERNAL-IP <none>` confirms it is not exposed outside the cluster. `80/TCP` is the port and the protocol (TCP, the reliable-delivery method that web traffic uses).
+**How to read it.**
 
-### The most important command in this lab
+- There are **three** Pods, exactly as the plan asked.
+- All are `1/1` and `Running`, so they are healthy.
+- The `IP` column is each Pod's own address. (IP stands for Internet Protocol. An IP address is just a number that identifies something on a network, like a house number.) **Remember that every Pod has its own different address.**
+- The `NODE` column shows Kubernetes spread the Pods across the machines.
+- The name has a pattern. `web-app-7d9c6b5f4d-abcde` is the Deployment name, then a code, then random letters. The middle code belongs to a helper object called a **ReplicaSet**, which Kubernetes made automatically. Its only job is to keep exactly three Pods alive. So the chain is: Deployment makes ReplicaSet, which makes Pods.
+
+### Look at the name badges
 
 ```plain
-kubectl get endpoints web-service -n learning
+kubectl get pods -n learning --show-labels
 ```{{exec}}
 
-**What it does.** An **endpoint** is the address of one Pod that the Service forwards to. This command shows the Service's current list of backends. Kubernetes builds that list automatically by finding Pods whose labels match the Service's selector.
+**What this does.** `--show-labels` adds a column showing each Pod's labels, which are the name badges.
 
 **What you should see:**
 
 ```
-NAME          ENDPOINTS                                         AGE
-web-service   192.168.1.4:80,192.168.1.5:80,192.168.2.3:80      15s
+NAME                       READY   STATUS    RESTARTS   AGE   LABELS
+web-app-7d9c6b5f4d-abcde   1/1     Running   0          1m    app=web-app,pod-template-hash=7d9c6b5f4d
+web-app-7d9c6b5f4d-fghij   1/1     Running   0          1m    app=web-app,pod-template-hash=7d9c6b5f4d
+web-app-7d9c6b5f4d-klmno   1/1     Running   0          1m    app=web-app,pod-template-hash=7d9c6b5f4d
 ```
 
-Your newer Kubernetes may print a warning first that `v1 Endpoints is deprecated`. That is only a notice that a newer object type called EndpointSlice is replacing it. The information is the same.
+**How to read it.** Every Pod wears the badge **`app=web-app`**. That came from Part D of the plan. (The second label, `pod-template-hash`, is added by Kubernetes for its own bookkeeping, so ignore it.)
 
-**How to read it.** There are three addresses, each ending in `:80`. **Compare them with the Pod addresses from the previous step. They are the same three addresses.** That is the whole mechanism: the Service did not copy the Pods or know them by name. It searched for Pods with `app=web-app` and listed their addresses.
+**This is the most important thing in the whole lab, so say it to yourself: the Pods wear the badge `app=web-app`.** The troubleshooting later depends on it.
 
-If this column said `<none>`, the Service would have no backends and every request would fail. You will cause exactly that in a later step, so remember what the healthy version looks like.
+> **What you now have:** three healthy Pods, each with its own address and each wearing the badge `app=web-app`.
 
-Click **Check** when you can see three endpoints.
+Click **Check** when all three are `Running`.

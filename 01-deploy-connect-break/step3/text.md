@@ -1,8 +1,16 @@
-## Step 3 - Deploy three web Pods
+## Step 3 of 16 - Write the plan for three web Pods
 
-### First, read the YAML
+> **Where we are:** Part 1, Build.
+> **What exists so far:** an empty folder (namespace) called `learning`.
+> **What we do now:** write a plan, as a text file, that says "I want three web servers running". We only write the file in this step. We send it to Kubernetes in the next step.
 
-This is the instruction you will give Kubernetes. Read it here first. The next block, with the command, comes afterwards.
+### What a plan looks like
+
+The plan is written in a format called **YAML** (it reads like an indented list). You describe what you **want**, not how to do it. You do not say "start three programs". You say "I want three to exist", and Kubernetes works out how to make that true and keeps it true.
+
+In YAML, **indentation matters**. A line indented two more spaces belongs to the line above it. We will look at the plan in four parts. Together they make one file.
+
+### Part A: what kind of thing is this, and what is it called?
 
 ```
 apiVersion: apps/v1
@@ -10,11 +18,36 @@ kind: Deployment
 metadata:
   name: web-app
   namespace: learning
+```
+
+- `kind: Deployment` says we are making a **Deployment**. In our story, that is the manager who makes sure three employees are always at work.
+- `apiVersion: apps/v1` says which version of Kubernetes' rulebook this kind of object follows. Just copy it.
+- `name: web-app` is the Deployment's name.
+- `namespace: learning` puts it in our folder.
+
+### Part B: how many?
+
+```
 spec:
   replicas: 3
+```
+
+- `spec` is short for "specification", which means "what I want".
+- `replicas: 3` means "I want three copies". A replica is just one copy.
+
+### Part C: how does the manager recognise its own employees?
+
+```
   selector:
     matchLabels:
       app: web-app
+```
+
+This says: "The Pods that are mine are the ones wearing the badge `app=web-app`." The manager counts badges to check whether three employees exist.
+
+### Part D: the template for each new employee
+
+```
   template:
     metadata:
       labels:
@@ -27,23 +60,15 @@ spec:
             - containerPort: 80
 ```
 
-YAML describes what you **want**. You never say "start three containers". You say "I want three copies to exist", and Kubernetes works out how. Indentation matters in YAML: two spaces show that a line belongs to the line above it.
+- `template` is the blueprint used to make every new Pod.
+- `labels: app: web-app` is the **name badge** that every new Pod wears. Notice it says the same thing as Part C. **The two must match.** If Part D gave a different badge, the manager could never find its own employees.
+- `containers` lists what runs inside each Pod. We have one container, called `nginx`. A **container** is a packaged program that carries everything it needs.
+- `image: nginx:stable-alpine` says which package to run. **Nginx** is a very common web server (a program that answers web requests). `stable-alpine` is a small, stable version.
+- `containerPort: 80` notes that the program listens on port 80. A **port** is a numbered door on a machine, and 80 is the usual door for web traffic.
 
-**Line by line:**
+### Now write the file
 
-- `apiVersion: apps/v1` says which version of Kubernetes' rulebook this object follows. Deployments live in the group called `apps`.
-- `kind: Deployment` says what type of object this is.
-- `metadata:` introduces the object's identity. `name: web-app` is what you call it. `namespace: learning` puts it in the folder you made.
-- `spec:` means "specification", the description of what you want.
-- `replicas: 3` means "keep three identical Pods running".
-- `selector: matchLabels: app: web-app` tells the Deployment which Pods are **its own**: any Pod labelled `app=web-app`. This is how it counts "do I have three yet?".
-- `template:` is the blueprint for every Pod the Deployment creates.
-- Inside it, `metadata: labels: app: web-app` is the label stuck on every new Pod. **This must match the selector above**, otherwise the Deployment could not find its own Pods.
-- `containers:` lists the containers in each Pod. Here there is one, named `nginx`.
-- `image: nginx:stable-alpine` says which container image to run. An **image** is the packaged program. `nginx` is a popular web server, `stable-alpine` is a small, stable build of it.
-- `containerPort: 80` records that the program listens on port 80. A **port** is a numbered door on a machine, and 80 is the standard door for web traffic. This line is documentation; it does not open anything by itself.
-
-### Now create it
+This command saves all four parts into a file called `deployment.yaml`. It does not send anything to Kubernetes yet.
 
 ```plain
 cat > deployment.yaml <<'EOF'
@@ -68,46 +93,18 @@ spec:
           ports:
             - containerPort: 80
 EOF
-kubectl apply -f deployment.yaml
 ```{{exec}}
 
-**What it does.** The first part, `cat > deployment.yaml <<'EOF' ... EOF`, writes the text between the markers into a file called `deployment.yaml`. The second part, `kubectl apply -f deployment.yaml`, sends that file to the API server. `apply` means "make the cluster match this description", and `-f` means "from this file".
+Everything between `<<'EOF'` and the final `EOF` is the text that gets saved. The `cat >` part means "write it into this file".
 
-**What you should see:**
-
-```
-deployment.apps/web-app created
-```
-
-### Watch what Kubernetes built
+Check the file was written:
 
 ```plain
-kubectl get deployments,replicasets,pods -n learning -o wide
+cat deployment.yaml
 ```{{exec}}
 
-**What it does.** It lists three kinds of object in one go. You asked for one Deployment, but you will see three layers.
+You should see the same text you just read, all in one piece. Notice `app: web-app` appears **twice**: once in the selector (Part C) and once in the template's labels (Part D).
 
-**What you should see** (the random letters will differ):
+> **What you now have:** a file called `deployment.yaml` on this machine. Kubernetes does not know about it yet.
 
-```
-NAME                      READY   UP-TO-DATE   AVAILABLE   ...
-deployment.apps/web-app   3/3     3            3           ...
-
-NAME                                 DESIRED   CURRENT   READY   ...
-replicaset.apps/web-app-7d9c6b5f4d   3         3         3       ...
-
-NAME                           READY   STATUS    RESTARTS   AGE   IP            NODE
-pod/web-app-7d9c6b5f4d-abcde   1/1     Running   0          30s   192.168.x.x   node01
-pod/web-app-7d9c6b5f4d-fghij   1/1     Running   0          30s   192.168.x.x   controlplane
-pod/web-app-7d9c6b5f4d-klmno   1/1     Running   0          30s   192.168.x.x   node01
-```
-
-**How to read it.**
-
-- The **Deployment** line says `READY 3/3`: three wanted, three ready.
-- Between the Deployment and the Pods, Kubernetes created a **ReplicaSet**. A ReplicaSet's only job is "keep exactly this many Pods alive". The Deployment manages ReplicaSets, which is what lets it do safe updates later.
-- Look at the Pod names: `web-app-7d9c6b5f4d-abcde`. The middle part, `7d9c6b5f4d`, is the ReplicaSet's name suffix; the last five letters are random per Pod. The names show you the chain: Deployment, then ReplicaSet, then Pod.
-- The `IP` column shows each Pod's own address. **Write down the three addresses** (or just keep this output visible), because you will meet them again in the next step.
-- The `NODE` column shows which machine each Pod landed on. The scheduler spread them across both nodes.
-
-If a Pod shows `ContainerCreating`, it is still downloading the image; wait ten seconds and run the command again. When all three say `Running` and `READY 1/1`, click **Check**.
+Click **Check**.

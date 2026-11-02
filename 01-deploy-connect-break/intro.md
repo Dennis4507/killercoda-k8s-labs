@@ -1,35 +1,37 @@
 # Lab 01 - Deploy, connect, break, repair
 
-This lab is about understanding, not typing. For every command you will be told what it does, what you should see, and how to read it. Take your time. If something is unclear, re-read the explanation before moving on.
+This lab teaches you to understand Kubernetes, not just type commands. It moves in very small steps. Each step has one idea, and every command is explained before and after you run it.
 
-## What you will build
+## The story we will use
 
-You will run a small web application and make it reachable by name from inside Kubernetes:
+Imagine an office building. Inside it, three employees are sitting at desks, ready to answer web requests. Each employee wears a **name badge** that says `app=web-app`. At the front of the building there is a **reception desk** with one fixed phone number. When somebody calls the reception desk, the desk looks at its rule, which says "send callers to anyone wearing the badge `app=web-app`", and passes the call to one of those employees.
 
-```
-test client  ----->  Service "web-service"  ----->  3 copies of a web server (Nginx)
-```
+Later in the lab we will secretly change the desk's rule so it looks for the wrong badge. The employees will still be at work, and the phone number will still ring, but nobody will answer. You will then investigate like a detective and fix it.
 
-Then you will break the middle part on purpose, and find and fix the fault using only evidence from the cluster.
+That story is exactly how Kubernetes works. Here is how the story matches the real words:
 
-## Words you need first
+| In the story | The real Kubernetes word | What it really is |
+|---|---|---|
+| The building | **Cluster** | The group of machines that Kubernetes controls |
+| One floor of the building | **Namespace** | A named area that keeps your things separate from other things |
+| An employee | **Pod** | One running copy of your application |
+| The name badge | **Label** | A small tag like `app=web-app` stuck on an object |
+| The manager who keeps three employees at work | **Deployment** | An instruction saying "always keep three Pods running" |
+| The reception desk with one fixed number | **Service** | One stable name and address that forwards to Pods |
+| The desk's rule "send callers to badge X" | **Selector** | A rule that finds objects by their labels |
+| The desk's current list of employees | **Endpoints** | The addresses of the Pods the Service found |
+| Phoning the desk by name | **DNS** (Domain Name System) | The cluster's phone book that turns a name into an address |
 
-**Kubernetes** is software that runs containers across several machines and keeps them running. A **container** is a packaged program with everything it needs, so it runs the same everywhere.
+## The three parts of the lab
 
-A **node** is one machine in the cluster. A **cluster** is all the machines working together. Yours has two nodes: one called `controlplane` (the machine that makes decisions) and one called `node01` (a worker machine that runs applications).
+1. **Build** (steps 1 to 10): create the Pods, create the Service, and make a call that works.
+2. **Break** (step 11): change one thing so the call fails.
+3. **Detective and fix** (steps 12 to 16): follow clues, find the cause, repair it, and prove it.
 
-A **Pod** is the smallest thing Kubernetes runs. It wraps one container (sometimes a few). Pods are disposable: they can die and be replaced, and every replacement gets a new address.
+## How each step is laid out
 
-A **Deployment** is an instruction saying "keep this many copies of this Pod running". If a Pod dies, the Deployment replaces it.
+Every step starts with a short box telling you **where you are** and **what exists so far**, so you never lose track. Then comes the explanation, then the commands. After each command you will see **what you should see** (your numbers and letters will differ a little) and **how to read it**. Every step ends with **what you now have**.
 
-A **Service** gives a group of Pods one stable name and address, because the Pods' own addresses keep changing.
-
-A **label** is a name tag attached to an object, written as `key=value`, like `app=web-app`. A **selector** is a rule that finds objects by their labels. A Service uses a selector to find its Pods. This one idea is the heart of the failure you will cause and fix.
-
-**kubectl** (said "kube-control" or "kube-cuddle") is the command-line tool you use to talk to Kubernetes. **YAML** is the text format used to describe what you want Kubernetes to build. **DNS** (Domain Name System) turns a name like `web-service` into an address, the way a phone book turns a name into a number.
-
-## How the steps work
-
-Each step has text to read, commands you can click to run, and sample output. Your output will be similar but not identical: addresses, ages and random letters in names will differ. Some steps end with a **Check** button, which looks at your cluster to confirm you did the step.
+You will use a tool called **kubectl** (say "kube-control"). It is how you give Kubernetes instructions and ask it questions.
 
 Wait until the terminal on the right shows a prompt, then click **Start**.

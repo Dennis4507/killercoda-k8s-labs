@@ -1,31 +1,52 @@
-## Step 8 - Repair and prove it
+## Step 8 of 16 - See who the Service sends callers to
 
-The fix is to make the Service's selector match the Pods' label again.
+> **Where we are:** Part 1, Build.
+> **What exists so far:** three Pods wearing `app=web-app`, and a Service whose rule is "send callers to `app=web-app`".
+> **What we do now:** look at the desk's list of employees, and see that it matches the Pods. **This is the most important step to understand.**
 
-### Apply the fix
+### How the desk finds its employees
+
+The moment you created the Service, Kubernetes did this on its own:
+
+1. Read the desk's rule: "badge `app=web-app`".
+2. Look through every Pod in the folder for that badge.
+3. Write down the **address of every Pod wearing it**. That written list is called the **endpoints**.
+
+The list is kept up to date automatically. When a Pod is replaced, the list changes.
+
+### First, the Pods' current addresses
 
 ```plain
-kubectl patch service web-service -n learning -p '{"spec":{"selector":{"app":"web-app"}}}'
+kubectl get pods -n learning -o wide
 ```{{exec}}
 
-**What it does.** The same `patch` command as in step 6, but setting the selector back to `app=web-app`.
+Look at the `IP` column and note the three addresses. For example: `192.168.1.5`, `192.168.0.6`, `192.168.1.7`.
 
-**What you should see:** `service/web-service patched`
-
-### Prove the backends are back
+### Now, the desk's list
 
 ```plain
 kubectl get endpoints web-service -n learning
 ```{{exec}}
 
-You should see **three addresses again**, the same three Pod addresses as in step 4. Kubernetes noticed the selector change and rebuilt the endpoint list within a second or two. If it still shows `<none>`, wait a few seconds and run it again.
+**What you should see:**
 
-### Prove the request works
+```
+NAME          ENDPOINTS                                          AGE
+web-service   192.168.0.6:80,192.168.1.5:80,192.168.1.7:80       2m
+```
 
-```plain
-kubectl exec -n learning client -- curl -sI http://web-service
-```{{exec}}
+(Newer Kubernetes may print a short warning that "Endpoints is deprecated". That is only a notice that a newer type of list is replacing this one. The information is the same, so ignore the warning.)
 
-You should see `HTTP/1.1 200 OK` again. The fault is repaired, and you proved it two ways: the endpoint list is full and a real request succeeds. Always verify a fix with real traffic, not just by trusting that the change was applied.
+**How to read it.** The `ENDPOINTS` column has three addresses, each followed by `:80`. The `:80` is the door on the Pod. **Compare these three addresses with the three Pod addresses you just noted. They are the same three.**
 
-Click **Check**.
+That is the whole mechanism:
+
+> The Service did not memorise the Pods by name. It looked for Pods wearing `app=web-app` and wrote down their addresses.
+
+### What would a broken one look like?
+
+If the list were empty, the `ENDPOINTS` column would say `<none>`. That would mean "the desk found nobody wearing the badge". The desk would have nobody to send callers to, and every call would fail. **Remember what `<none>` means here, because we will see it soon.**
+
+> **What you now have:** a working desk whose list of three employees matches your three Pods.
+
+Click **Check** when you can see three addresses.

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-n=$(kubectl get endpointslices -n learning -l kubernetes.io/service-name=web-service -o jsonpath='{.items[*].endpoints[*].addresses[0]}' 2>/dev/null | wc -w)
-[ "$n" -eq 3 ]
+ready=$(kubectl get deployment web-app -n learning -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+[ "$ready" = "3" ]

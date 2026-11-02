@@ -1,73 +1,61 @@
-## Step 5 - Call the Service from inside the cluster
+## Step 5 of 16 - Watch a Pod die and come back
 
-The Service is ClusterIP, so it can only be reached from inside the cluster. To test it, you need a program running inside the cluster to make the request. You will start a tiny helper Pod that does nothing but wait, and then run commands from it.
+> **Where we are:** Part 1, Build.
+> **What exists so far:** three healthy Pods in `learning`, each with its own address and the badge `app=web-app`.
+> **What we do now:** delete one Pod on purpose, and see why having only the Pods is not enough.
 
-### Start the helper Pod
+This step explains **why we need a reception desk** at all. Read it carefully, because it makes the next steps make sense.
+
+### Look at the addresses now
 
 ```plain
-kubectl run client -n learning --image=curlimages/curl --restart=Never --command -- sleep 3600
+kubectl get pods -n learning -o wide
 ```{{exec}}
 
-**What it does, piece by piece:**
+Pick any one Pod and note its **name** and its **IP address**. For example, `web-app-7d9c6b5f4d-abcde` with `192.168.1.4`.
 
-- `kubectl run client` creates a single Pod named `client`.
-- `-n learning` puts it in your namespace.
-- `--image=curlimages/curl` uses a small image that contains `curl`, a tool for making web requests.
-- `--restart=Never` means "if it stops, leave it stopped". Without it, Kubernetes would keep restarting the container every time it exited, which is the normal behaviour for long-running applications but not what a throwaway helper needs.
-- `--command -- sleep 3600` replaces the image's default program with `sleep 3600`, which just waits for an hour. Without it, the container would start, finish immediately, and exit. The `--` separates `kubectl`'s own options from the command that runs inside the container.
+### Delete one Pod
+
+```plain
+kubectl delete pod -n learning $(kubectl get pods -n learning -o name | head -n 1)
+```{{exec}}
+
+**What this does.** It has two parts. The inner part, `kubectl get pods -n learning -o name | head -n 1`, lists the Pod names and keeps only the first one. The outer part, `kubectl delete pod -n learning ...`, deletes whichever name the inner part found. So it deletes one Pod, the first in the list.
 
 **What you should see:**
 
 ```
-pod/client created
+pod "web-app-7d9c6b5f4d-abcde" deleted
 ```
 
-### Wait until it is ready
+It may take a few seconds to finish, because Kubernetes lets the program shut down politely.
+
+### Look again, straight away
 
 ```plain
-kubectl wait -n learning --for=condition=Ready pod/client --timeout=90s
+kubectl get pods -n learning -o wide
 ```{{exec}}
-
-**What it does.** It pauses until the Pod is Ready, or gives up after 90 seconds. This saves you from typing `get pods` repeatedly.
-
-**What you should see:** `pod/client condition met`
-
-### Make the request
-
-```plain
-kubectl exec -n learning client -- curl -sI http://web-service
-```{{exec}}
-
-**What it does, piece by piece:**
-
-- `kubectl exec` runs a command **inside** an existing Pod, like opening a terminal in it.
-- `-n learning client` says which namespace and which Pod.
-- The `--` separates `kubectl`'s options from the command to run.
-- `curl -sI http://web-service` is the command that runs inside the client Pod. `-s` means silent (no progress bar). `-I` means ask only for the response **headers**, the short summary lines, rather than the whole page. `http://web-service` is the address: the Service's name.
 
 **What you should see:**
 
 ```
-HTTP/1.1 200 OK
-Server: nginx/1.xx.x
-Date: Thu, 29 Oct 2026 10:00:00 GMT
-Content-Type: text/html
-Content-Length: 615
-Connection: keep-alive
+NAME                       READY   STATUS    RESTARTS   AGE    IP            NODE
+web-app-7d9c6b5f4d-fghij   1/1     Running   0          3m     192.168.1.5   node01
+web-app-7d9c6b5f4d-klmno   1/1     Running   0          3m     192.168.0.6   controlplane
+web-app-7d9c6b5f4d-pqrst   1/1     Running   0          10s    192.168.1.7   node01
 ```
 
-**How to read it.** The first line is the important one. `HTTP/1.1 200 OK` means "the request worked". HTTP is the language web servers and clients speak, and `200` is its code for success. `Server: nginx` proves your Nginx Pod answered, so the request really did reach one of your three Pods.
+**How to read it.**
 
-### What just happened, step by step
+- There are still **three** Pods. The manager (the Deployment) noticed one employee was missing and hired a replacement straight away. That is the Deployment doing its job.
+- But look at the new Pod. It has a **new name** (`...-pqrst`) and a **new IP address** (`192.168.1.7`). It is **not** the same address as the Pod you deleted.
 
-You typed only a name, `web-service`. Here is the journey of that one request:
+### Why this matters
 
-1. The `curl` program asked the cluster's DNS (`coredns`) "what address belongs to `web-service`?".
-2. CoreDNS answered with the Service's permanent ClusterIP address.
-3. `curl` sent the request to that address.
-4. `kube-proxy`, which had set up forwarding rules on the node, noticed the request was for a Service address and redirected it to one of the three Pod addresses from the endpoints list.
-5. That Nginx Pod answered, and the answer travelled back.
+Pods come and go. They can crash, be moved to another machine, or be replaced during an update. Every replacement gets a **new address**. If another program had saved the old address, it would now be calling an empty chair.
 
-The name worked without a namespace because the client Pod is in the same namespace as the Service. From another namespace you would use `web-service.learning`.
+So we need something with **one fixed address that never changes**, which always knows who the current employees are. That is the reception desk, a **Service**. We build it next.
 
-Click **Check** once you have seen `200 OK`.
+> **What you now have:** the same three Pods as before, but one is brand new. You have seen that Pod addresses are not reliable. This is the reason Services exist.
+
+Click **Continue**.

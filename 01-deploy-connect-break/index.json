@@ -1,48 +1,84 @@
 {
   "title": "Lab 01 - Deploy, connect, break, repair",
-  "description": "Deploy three web Pods, give them a Service, then break the Service on purpose and fix it by reading the evidence. Every command and every line of YAML is explained.",
+  "description": "Build a small web application on Kubernetes, break the connection to it on purpose, then find and fix the fault like a detective. Small steps, plain English, everything explained.",
   "details": {
     "intro": {
       "text": "intro.md"
     },
     "steps": [
       {
-        "title": "Meet the cluster",
+        "title": "Look at the cluster",
         "text": "step1/text.md"
       },
       {
-        "title": "Create a namespace",
+        "title": "Make your own folder",
         "text": "step2/text.md",
         "verify": "step2/verify.sh"
       },
       {
-        "title": "Deploy three web Pods",
+        "title": "Write the plan for three web Pods",
         "text": "step3/text.md",
         "verify": "step3/verify.sh"
       },
       {
-        "title": "Give the Pods one stable address",
+        "title": "Start the Pods and read what happened",
         "text": "step4/text.md",
         "verify": "step4/verify.sh"
       },
       {
-        "title": "Call the Service from inside the cluster",
-        "text": "step5/text.md",
-        "verify": "step5/verify.sh"
+        "title": "Watch a Pod die and come back",
+        "text": "step5/text.md"
       },
       {
-        "title": "Break the Service on purpose",
+        "title": "Write the plan for the Service",
         "text": "step6/text.md",
         "verify": "step6/verify.sh"
       },
       {
-        "title": "Diagnose from the evidence",
-        "text": "step7/text.md"
+        "title": "Start the Service and look at it",
+        "text": "step7/text.md",
+        "verify": "step7/verify.sh"
       },
       {
-        "title": "Repair and prove it",
+        "title": "See who the Service sends callers to",
         "text": "step8/text.md",
         "verify": "step8/verify.sh"
+      },
+      {
+        "title": "Start a helper Pod",
+        "text": "step9/text.md",
+        "verify": "step9/verify.sh"
+      },
+      {
+        "title": "Call the Service",
+        "text": "step10/text.md",
+        "verify": "step10/verify.sh"
+      },
+      {
+        "title": "Break the Service on purpose",
+        "text": "step11/text.md",
+        "verify": "step11/verify.sh"
+      },
+      {
+        "title": "Detective 1: see the symptom",
+        "text": "step12/text.md"
+      },
+      {
+        "title": "Detective 2: what badge is the Service looking for?",
+        "text": "step13/text.md"
+      },
+      {
+        "title": "Detective 3: what badge do the Pods wear?",
+        "text": "step14/text.md"
+      },
+      {
+        "title": "Detective 4: prove it",
+        "text": "step15/text.md"
+      },
+      {
+        "title": "Fix it and prove it",
+        "text": "step16/text.md",
+        "verify": "step16/verify.sh"
       }
     ],
     "finish": {

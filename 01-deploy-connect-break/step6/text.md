@@ -1,51 +1,87 @@
-## Step 6 - Break the Service on purpose
+## Step 6 of 16 - Write the plan for the Service
 
-Everything works. Now you will cause one of the most common real Kubernetes faults: a Service whose selector no longer matches any Pod's label. This happens in real life through a typo, a renamed label, or a copy-and-paste mistake.
+> **Where we are:** Part 1, Build.
+> **What exists so far:** three Pods, each wearing the badge `app=web-app`, with addresses that can change.
+> **What we do now:** write the plan for the reception desk (the Service). Again we only write the file. We send it in the next step.
 
-### Make the change
+### What the reception desk needs to know
+
+A reception desk needs answers to four questions. The plan answers each one.
+
+### Part A: what is it, and what is it called?
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: learning
+```
+
+- `kind: Service` says this is a Service, the reception desk.
+- `name: web-service` is the name callers will use to reach it. **Remember this exact name**, because we will phone it by name later.
+- `namespace: learning` puts it in our folder.
+
+### Part B: who can phone it?
+
+```
+spec:
+  type: ClusterIP
+```
+
+`ClusterIP` means the desk's phone number only works **from inside the building** (the cluster). Nobody outside can call it. This is the default and the safest choice.
+
+### Part C: which employees should it send callers to?
+
+```
+  selector:
+    app: web-app
+```
+
+This is the **desk's rule**, called the **selector**. It says: "send callers to any Pod wearing the badge `app=web-app`."
+
+**This is the link between the Service and the Pods.** The Service does not know the Pods' names or addresses. It only knows the badge. Each time it needs to, it looks for every Pod wearing that badge. Look back at step 4: our Pods wear exactly `app=web-app`, so the rule will find them.
+
+### Part D: which door, and which door on the Pod?
+
+```
+  ports:
+    - port: 80
+      targetPort: 80
+```
+
+- `port: 80` is the door the **caller** uses on the desk. Callers ask for the Service on port 80.
+- `targetPort: 80` is the door on the **Pod** where the desk forwards the call. Nginx is listening on port 80.
+
+Here both are 80, but they do not have to be. A desk could take calls on 80 and forward to an application on 8080. A wrong `targetPort` is another common fault, but not the one we study today.
+
+### Now write the file
 
 ```plain
-kubectl patch service web-service -n learning -p '{"spec":{"selector":{"app":"wrong-app"}}}'
+cat > service.yaml <<'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: learning
+spec:
+  type: ClusterIP
+  selector:
+    app: web-app
+  ports:
+    - port: 80
+      targetPort: 80
+EOF
 ```{{exec}}
 
-**What it does.** `kubectl patch` changes part of an existing object without rewriting the whole file. `-p` supplies the change, written as JSON (another text format, like YAML with braces). The change reads: inside `spec`, inside `selector`, set `app` to `wrong-app`. The Service now looks for Pods labelled `app=wrong-app`, and no such Pods exist.
-
-**What you should see:**
-
-```
-service/web-service patched
-```
-
-### Notice what did NOT change
+Look at it:
 
 ```plain
-kubectl get pods -n learning
+cat service.yaml
 ```{{exec}}
 
-You should still see your three `web-app` Pods, all `1/1 Running`, plus the `client`. Nothing happened to the Pods. They are healthy, and Nginx inside them is still running perfectly. Only the connection **from the Service to the Pods** broke. Keep this in mind, because it is the essence of the failure: healthy applications behind a broken pointer.
+Find the line `app: web-app` under `selector`. Compare it with the badge your Pods wear. They are the same. This match is what makes the whole thing work.
 
-### See the failure
+> **What you now have:** a file called `service.yaml`. Kubernetes does not know about it yet.
 
-```plain
-kubectl exec -n learning client -- curl -v --max-time 5 http://web-service
-```{{exec}}
-
-**What it does.** The same request as before, but with `-v` (verbose, meaning "show every step") and `--max-time 5` (give up after five seconds instead of waiting forever).
-
-**What you should see.** Most likely a quick refusal:
-
-```
-* Host web-service:80 was resolved.
-* IPv4: 10.96.x.x
-*   Trying 10.96.x.x:80...
-* connect to 10.96.x.x port 80 failed: Connection refused
-curl: (7) Failed to connect to web-service port 80 ...: Couldn't connect to server
-```
-
-On some setups the request instead hangs and ends with `curl: (28) Connection timed out after 5000 milliseconds`. Both mean the same thing here.
-
-**How to read it.** Look at the first lines: `Host web-service:80 was resolved` followed by an IP address. That means the **name lookup worked**, so DNS is fine. The failure comes later, when connecting. You have already eliminated one whole category of problem just by reading the output carefully.
-
-So the picture is: the name resolves, the Pods are healthy, yet the connection fails. In the next step you will find out why. Before you move on, think about which part of the chain, name to Service to endpoints to Pods, could be broken.
-
-Click **Check** once you have run the failing request.
+Click **Check**.
