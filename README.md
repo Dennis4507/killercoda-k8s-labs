@@ -6,6 +6,7 @@ Hands-on Kubernetes failure labs for [Killercoda](https://killercoda.com). Each 
 |---|---|
 | [01-deploy-connect-break](01-deploy-connect-break) | Deployment, Service, label-selector mismatch |
 | [02-pods-wont-start](02-pods-wont-start) | `ImagePullBackOff` and `CrashLoopBackOff`: status, Events, logs, exit codes |
+| [03-stuck-rolling-update](03-stuck-rolling-update) | `Pending` Pod and a deadlocked rolling update: CPU requests vs usage, `maxSurge`, right-sizing |
 
 ## Adding a lab
 

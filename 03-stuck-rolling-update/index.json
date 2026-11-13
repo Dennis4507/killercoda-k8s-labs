@@ -1,0 +1,66 @@
+{
+  "title": "Lab 03 - The update that got stuck",
+  "description": "A rolling update freezes with a Pending Pod even though the machine is almost idle. Learn CPU requests versus real usage, how the scheduler counts, and how to find and fix the deadlock. Based on a real incident.",
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "steps": [
+      {
+        "title": "The desk-booking story",
+        "text": "step1/text.md",
+        "verify": "step1/verify.sh"
+      },
+      {
+        "title": "Measure the floor",
+        "text": "step2/text.md"
+      },
+      {
+        "title": "Write the plan with a CPU booking",
+        "text": "step3/text.md",
+        "verify": "step3/verify.sh"
+      },
+      {
+        "title": "Start the Pods and check they fit",
+        "text": "step4/text.md",
+        "verify": "step4/verify.sh"
+      },
+      {
+        "title": "Booked versus actually used",
+        "text": "step5/text.md"
+      },
+      {
+        "title": "Release a new version",
+        "text": "step6/text.md",
+        "verify": "step6/verify.sh"
+      },
+      {
+        "title": "Detective 1: see the symptom",
+        "text": "step7/text.md"
+      },
+      {
+        "title": "Detective 2: read the scheduler's reason",
+        "text": "step8/text.md"
+      },
+      {
+        "title": "Detective 3: why nothing can move",
+        "text": "step9/text.md"
+      },
+      {
+        "title": "Choose the fix",
+        "text": "step10/text.md"
+      },
+      {
+        "title": "Apply the fix and prove it",
+        "text": "step11/text.md",
+        "verify": "step11/verify.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    }
+  },
+  "backend": {
+    "imageid": "kubernetes-kubeadm-2nodes"
+  }
+}
