@@ -1,5 +1,7 @@
 ## Step 6 of 11 - Release a new version
 
+**Progress:** ▰▰▰▰▰▰▱▱▱▱▱ Part 2 of 4: Break
+
 > **Where we are:** Part 2, Break.
 > **What exists so far:** three healthy Pods running version `nginx:stable-alpine`, on a floor that is about 87% booked but nearly empty in reality.
 > **What we do now:** release a new version of the application, and watch the update freeze.
@@ -29,6 +31,19 @@ The manager follows the two rules from step 3: `maxSurge: 1` and `maxUnavailable
 3. Repeat until all three are new.
 
 Step 1 needs **a fourth booking of size R**. But the floor has no room for one. Let us watch what happens.
+
+Here is what the manager wants, and what is actually possible:
+
+```
+What the manager wants during the update:
+
+   old   old   old    +   NEW      = 4 employees on the floor
+   [R]   [R]   [R]        [R]      = 4 bookings needed (4 x R)
+
+What the floor can hold:
+
+   3 x R fits,  but  4 x R does NOT fit
+```
 
 ### Watch the update
 

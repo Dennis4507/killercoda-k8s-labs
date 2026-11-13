@@ -4,6 +4,18 @@
 
 The scheduler places Pods by what they **book** (their `requests`), not by what they **use**. So a machine can be full on paper and nearly empty in reality, and a Pod that does not fit on paper stays `Pending`.
 
+## The whole story in one picture
+
+```
+BEFORE THE FIX                                  AFTER THE FIX
+
+ floor: [BBBBBBBBBBBBBBBBBB..]  87% booked       floor: [BBBBBB..............]  37% booked
+ real use: [u..................]  ~0% used        real use: [u.................]  ~0% used
+
+ update needs a 4th booking of size R            update needs a 4th booking of size R/3
+ free space < R   ->  Pending, deadlock          free space > R/3 ->  fits, update finishes
+```
+
 ## The chain of the incident, in plain sentences
 
 1. The Pods booked far more CPU than they used.

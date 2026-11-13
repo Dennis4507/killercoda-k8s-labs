@@ -1,26 +1,27 @@
 ## Step 3 of 11 - Write the plan with a CPU booking
 
+**Progress:** ▰▰▰▱▱▱▱▱▱▱▱ Part 1 of 4: Build
+
 > **Where we are:** Part 1, Build.
-> **What exists so far:** the folder `scheduling`, and your booking size R from step 2.
-> **What we do now:** write the plan for three web Pods, each booking R millicores. We only write the file. We send it in the next step.
+> **What exists so far:** the folder `scheduling`, and your booking size R saved in `~/req.txt`.
+> **What we do now:** write the plan for three web Pods, each booking R millicores. We only write the file in this step. We send it to Kubernetes in the next step.
 
-### Remember your number
-
-Type your R from step 2, in place of 500. Keep the number only, with no `m`:
+### Load your number
 
 ```plain
-REQ=500
-echo $REQ > ~/req.txt
+REQ=$(cat ~/req.txt)
 echo "Booking per Pod: ${REQ}m"
 ```{{exec}}
 
-**What this does.** `REQ=500` stores your number in a **variable**, a named box that holds a value. `echo $REQ > ~/req.txt` also saves it in a file, so you can use it again later even if the terminal is restarted. The last line prints it back so you can check it.
+**What this does.** `cat ~/req.txt` prints the number saved in step 2. `REQ=$( ... )` stores that number in a **variable**, which is a named box that holds a value. The `echo` line prints it back so you can check it. You should see something like `Booking per Pod: 500m`.
 
-> If your R from step 2 is not 500, edit the number in the first line before you run the block. For example `REQ=540`.
+> If it prints `Booking per Pod: m` with no number, the file is missing. Set it by hand with your R from step 2, for example `REQ=500` and `echo $REQ > ~/req.txt`, and run the block again.
 
 ### Read the plan in three parts
 
-**Part A: identity, how many, and the update rules.**
+The plan is a **Deployment**, the same kind of manager as in Labs 1 and 2. It is written in YAML, a text format where indentation shows what belongs to what. We read it in three parts that together make one file.
+
+**Part A: the name, how many Pods, and the update rules.**
 
 ```
 apiVersion: apps/v1
@@ -37,12 +38,12 @@ spec:
       maxUnavailable: 0
 ```
 
-- This is a **Deployment**, the manager that keeps `replicas: 3` Pods running.
-- `strategy` says how to replace Pods when there is a new version. `RollingUpdate` means "replace them gradually, a few at a time", so the application stays available.
-- `maxSurge: 1` means "during an update, you may have **1 extra** Pod above 3, so up to 4 at once".
+- `replicas: 3` means "keep three Pods running".
+- `strategy` says how to replace Pods when there is a new version. `RollingUpdate` means "replace them gradually, so the application stays available".
+- `maxSurge: 1` means "during an update, you may have **one extra** Pod above 3, so up to 4 at once".
 - `maxUnavailable: 0` means "never let the number of working Pods drop below 3".
 
-Together, these two rules say: **hire the replacement first, and only release an old employee once the replacement is working.** These are in fact Kubernetes' normal defaults for 3 Pods. We write them out so you can see them.
+Together these two rules say: **hire the replacement first, and release an old employee only when the replacement works.** These are Kubernetes' normal defaults for three Pods. We write them out so you can see them.
 
 **Part B: finding the Pods, and pinning them to `node01`.**
 
@@ -59,8 +60,8 @@ Together, these two rules say: **hire the replacement first, and only release an
         kubernetes.io/hostname: node01
 ```
 
-- `selector` and the template's `labels` are the matching name badge from Lab 1: the Deployment finds its own Pods by the badge `app=web`.
-- `nodeSelector` says "only place these Pods on the machine named `node01`". This keeps all of them on one small floor.
+- `selector` and the template's `labels` are the name-badge match from Lab 1: the Deployment finds its Pods by the badge `app=web`.
+- `nodeSelector` says "only place these Pods on the machine named `node01`". That keeps all of them on one small floor.
 
 **Part C: the container and its booking.**
 
@@ -74,7 +75,7 @@ Together, these two rules say: **hire the replacement first, and only release an
 ```
 
 - `image: nginx:stable-alpine` is the web server program package.
-- `resources: requests: cpu: "500m"` is **the booking**. This Pod reserves 500 millicores. In our real file, the number is your R.
+- `resources: requests: cpu: "500m"` is **the booking**. This Pod reserves 500 millicores. In your real file, the number will be your own R.
 
 ### Write the file
 
@@ -109,10 +110,10 @@ spec:
             requests:
               cpu: "${REQ}m"
 EOF
-cat deploy.yaml | grep cpu
+grep cpu deploy.yaml
 ```{{exec}}
 
-**What this does.** In earlier labs the closing marker was written `<<'EOF'` with quotes, which saves the text exactly as typed. Here it is `<<EOF` without quotes, so the shell **fills in** `${REQ}` with your number. The last line, `grep cpu`, prints the line containing `cpu` so you can confirm the number landed in the file.
+**What this does.** In earlier labs the closing marker was written `<<'EOF'` with quotes, which saves the text exactly as typed. Here it is `<<EOF` **without** quotes, so the shell **fills in** `${REQ}` with your number before saving. The last line, `grep cpu deploy.yaml`, prints the line containing `cpu` so you can confirm your number landed in the file.
 
 **What you should see** (with your own number):
 
@@ -120,7 +121,7 @@ cat deploy.yaml | grep cpu
               cpu: "500m"
 ```
 
-If it shows `cpu: "m"` with no number, the variable was empty. Run the first block again, then this one.
+If it shows `cpu: "m"` with no number, the variable was empty. Run the first block of this step again, then this one.
 
 > **What you now have:** a file called `deploy.yaml` that books R millicores per Pod. Kubernetes does not know about it yet.
 

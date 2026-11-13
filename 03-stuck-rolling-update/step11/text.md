@@ -1,5 +1,7 @@
 ## Step 11 of 11 - Apply the fix and prove it
 
+**Progress:** ▰▰▰▰▰▰▰▰▰▰▰ Part 4 of 4: Fix
+
 > **Where we are:** Part 3, Fix. The last step.
 > **What we know:** the fix is to cut each Pod's CPU booking to one third of R.
 > **What we do now:** apply it, watch the frozen update finish, and check the floor.

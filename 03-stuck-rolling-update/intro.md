@@ -14,6 +14,27 @@ When an employee is hired, the Pod asks for desks to be **booked** for them. Kub
 
 So a floor can be completely booked while the chairs are almost all empty. The next hire is then turned away, and the employees already working cannot be released either, as you will see. That is the trap.
 
+## The whole lab in one picture
+
+```
+BUILD                         BREAK                 DETECTIVE                     FIX
+(steps 1-5)                   (step 6)              (steps 7-9)                   (steps 10-11)
+
+measure the floor   --->   release a new   --->   see Pending             --->   shrink the
+hire 3 employees           version                 read the reason               bookings
+book lots of desks         (needs a 4th            see why nothing               watch the update
+see they use few           booking: none free)     can move                      finish
+```
+
+Plan for about 30 to 40 minutes. You have 60 minutes in a Killercoda session, so there is room to go slowly.
+
+## If you get lost
+
+- Each step starts with a **Progress** line and a **Where we are** box. Read those first, and you will know what already exists.
+- If a command shows something unexpected, run it again after ten seconds. Pods take a moment to start.
+- If a step says `No resources found`, check that the command ends with `-n scheduling`.
+- If you cannot continue, the commands in each step are safe to re-run. You can also close the session and start the lab again from the top.
+
 ## The three parts of the lab
 
 1. **Build** (steps 1 to 5): measure the floor, hire three employees with a booking, and see how little they actually use.

@@ -1,5 +1,7 @@
 ## Step 7 of 11 - Detective 1: see the symptom
 
+**Progress:** ▰▰▰▰▰▰▰▱▱▱▱ Part 3 of 4: Detective
+
 > **Where we are:** Part 3, Detective. Step 1 of 3 in the investigation.
 > **What we know so far:** the update froze. Nothing crashed.
 > **What we do now:** look at the Pods and the ReplicaSets, and see exactly what is stuck.

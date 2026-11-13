@@ -1,5 +1,7 @@
 ## Step 1 of 11 - The desk-booking story
 
+**Progress:** ▰▱▱▱▱▱▱▱▱▱▱ Part 1 of 4: Build
+
 > **Where we are:** Part 1, Build.
 > **What exists so far:** an empty cluster with two machines.
 > **What we do now:** learn four words, then make a folder (namespace) for our work.
@@ -23,6 +25,17 @@ A Pod can say three different things about CPU:
 When the **scheduler** decides which machine a new Pod goes on, it adds up the **requests** (bookings) on each machine. It places the Pod only if enough is left unbooked. **It does not look at real usage.**
 
 That means a machine can be 100% booked and 5% used at the same moment. To the scheduler it is full. In reality it is nearly empty. Keep that picture in mind, because the incident hinges on it.
+
+Here is that picture. Each square is a desk on the floor:
+
+```
+What the scheduler sees (BOOKINGS):   [BBBBBBBBBBBBBBBBBBBB....]  almost full
+What is really happening (USAGE):     [u.......................]  almost empty
+
+   B = desk booked (reserved)      u = desk someone is really sitting at
+```
+
+A new employee asks for desks. The scheduler looks at the first row, sees almost no free desks, and says "no room". Nobody looks at the second row.
 
 ### Make a folder for our work
 

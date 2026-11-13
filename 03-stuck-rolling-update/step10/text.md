@@ -1,5 +1,7 @@
 ## Step 10 of 11 - Choose the fix
 
+**Progress:** ▰▰▰▰▰▰▰▰▰▰▱ Part 4 of 4: Fix
+
 > **Where we are:** Part 3, Fix.
 > **What we know:** bookings leave no room for a fourth Pod, and the update rules need one extra Pod.
 > **What we do now:** think about the possible fixes, and choose one. No commands in this step. Read and decide.

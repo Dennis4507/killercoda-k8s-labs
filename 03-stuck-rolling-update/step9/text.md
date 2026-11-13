@@ -1,5 +1,7 @@
 ## Step 9 of 11 - Detective 3: why nothing can move
 
+**Progress:** ▰▰▰▰▰▰▰▰▰▱▱ Part 3 of 4: Detective
+
 > **Where we are:** Part 3, Detective. Step 3 of 3.
 > **What we know so far:** the scheduler says `Insufficient cpu` on `node01`, but real usage is almost zero.
 > **What we do now:** look at the floor's bookings once more, then look at the update rules, and see why the freeze never ends by itself.
@@ -57,6 +59,24 @@ Now follow the loop:
 4. Back to 1.
 
 Each side waits for the other. Nothing will ever change by itself. That is a **deadlock**: it is the same one that froze the real update for over six hours. It does not come from a bug. It comes from arithmetic: three bookings fit, but a fourth does not, and the update needs a fourth.
+
+Here is the loop as a picture:
+
+```
+   NEW Pod cannot start
+   (no free booking left)
+            |
+            |  needs a booking to be freed
+            v
+   an OLD Pod must be removed
+            |
+            |  but the rule maxUnavailable: 0 says
+            |  "not until a new Pod is working"
+            v
+   NEW Pod must be working first
+            |
+            +------>  back to the top. Nothing ever changes.
+```
 
 ### The diagnosis, in one sentence
 

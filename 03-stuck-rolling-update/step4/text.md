@@ -1,5 +1,7 @@
 ## Step 4 of 11 - Start the Pods and check they fit
 
+**Progress:** ▰▰▰▰▱▱▱▱▱▱▱ Part 1 of 4: Build
+
 > **Where we are:** Part 1, Build.
 > **What exists so far:** a plan file `deploy.yaml` booking R millicores per Pod. Kubernetes has not seen it.
 > **What we do now:** send the plan, and check that all three Pods fit on `node01`.
@@ -50,6 +52,18 @@ Allocated resources:
 ```
 
 **How to read it.** Compare it with step 2. The booked CPU went up by `3 x R`. In the example it went from 250m to 1750m (87%). So the floor is now **about 85 to 90 percent booked**. There is a small gap left, but **not enough for a fourth Pod of size R**.
+
+Here is the floor now, with the example numbers (each `B` is about 5% of the floor):
+
+```
+node01 after the three Pods are placed:
+
+  [SSS BBBBBBBBBBBBBBBBBB ...]
+   ^   ^                  ^
+   |   |                  free: about 250m, not enough for one more Pod of 500m
+   |   booked by your 3 web Pods: 1500m
+   booked by Kubernetes' own Pods: 250m
+```
 
 Remember this picture. The floor is nearly fully booked, and the next step will show how little of it is really being used.
 

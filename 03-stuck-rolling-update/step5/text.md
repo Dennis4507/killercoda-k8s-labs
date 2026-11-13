@@ -1,5 +1,7 @@
 ## Step 5 of 11 - Booked versus actually used
 
+**Progress:** ▰▰▰▰▰▱▱▱▱▱▱ Part 1 of 4: Build
+
 > **Where we are:** Part 1, Build. The last build step.
 > **What exists so far:** three healthy Pods, with the floor about 87% booked.
 > **What we do now:** look at how much CPU the Pods **really use**, so you see the gap between booking and usage.

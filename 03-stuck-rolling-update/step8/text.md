@@ -1,5 +1,7 @@
 ## Step 8 of 11 - Detective 2: read the scheduler's reason
 
+**Progress:** ▰▰▰▰▰▰▰▰▱▱▱ Part 3 of 4: Detective
+
 > **Where we are:** Part 3, Detective. Step 2 of 3.
 > **What we know so far:** the new Pod is `Pending`: it has not been placed on any machine.
 > **What we do now:** ask the scheduler why. It writes its reasons down as Events.
